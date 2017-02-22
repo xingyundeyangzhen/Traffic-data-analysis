@@ -2,14 +2,22 @@
 This file is part of the flask+d3 Hello World project.
 """
 import json
+import os
 import flask
-import numpy as np
+from flask_sqlalchemy import SQLAlchemy
 
+
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = flask.Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.join(basedir, 'data.db')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+db = SQLAlchemy(app)
+db.init_app(app)
 
 
 @app.route("/")
+@app.route("/login.html", methods=['get', 'post'])
 def login():
     """
     When you request the root path, you'll get the index.html template.
@@ -68,8 +76,8 @@ def data(ndata=100):
     A = 10. ** np.random.rand(ndata)
     c = np.random.rand(ndata)
     return json.dumps([{"_id": i, "x": x[i], "y": y[i], "area": A[i],
-        "color": c[i]}
-        for i in range(ndata)])
+                        "color": c[i]}
+                       for i in range(ndata)])
 
 
 if __name__ == "__main__":
