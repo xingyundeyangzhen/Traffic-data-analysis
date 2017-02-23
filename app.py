@@ -4,16 +4,20 @@ This file is part of the flask+d3 Hello World project.
 import json
 import flask
 import numpy as np
+from flask import request
 
 
 app = flask.Flask(__name__)
 
 
 @app.route("/")
+@app.route("/login.html", methods=['POST', 'get'])
 def login():
     """
     When you request the root path, you'll get the index.html template.
     """
+    username = request.form['username']
+    pswd = request.form['password']
     return flask.render_template("login.html")
 
 
@@ -70,6 +74,7 @@ def data(ndata=100):
     return json.dumps([{"_id": i, "x": x[i], "y": y[i], "area": A[i],
         "color": c[i]}
         for i in range(ndata)])
+
 
 
 if __name__ == "__main__":
