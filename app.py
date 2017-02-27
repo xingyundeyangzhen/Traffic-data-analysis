@@ -4,30 +4,35 @@ This file is part of the flask+d3 Hello World project.
 import json
 import os
 import flask
-import numpy as np
 from flask import request
 from flask_sqlalchemy import SQLAlchemy
 
 
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-
 app = flask.Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////' + os.path.join(basedir, 'data.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
-db.init_app(app)
+
 
 
 @app.route("/")
-@app.route("/login.html", methods=['POST', 'get'])
 def login():
     """
     When you request the root path, you'll get the index.html template.
     """
+    return flask.render_template("login.html")
+
+
+
+@app.route('/login.html',methods=['post','get'])
+def handle_login():
     username = request.form['username']
     pswd = request.form['password']
-    return flask.render_template("login.html")
+    print(username,pswd)
+    
+    return flask.render_template("index.html")
+
 
 
 @app.route("/index.html")

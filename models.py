@@ -11,3 +11,10 @@ class user(db.Model):
 
     def __repr__(self):
         return '<User %r>' % self.username
+
+
+def check_user(username,pswd):
+    u = user.query.filter_by(username=username).first()
+    if u:
+        if 
+
