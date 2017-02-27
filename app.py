@@ -4,16 +4,13 @@ This file is part of the flask+d3 Hello World project.
 import json
 import os
 import flask
-from flask import request
+from flask import request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
-
-
 
 app = flask.Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
-
 
 
 @app.route("/")
@@ -24,15 +21,23 @@ def login():
     return flask.render_template("login.html")
 
 
-
-@app.route('/login.html',methods=['post','get'])
+@app.route('/login.html', methods=['post', 'get'])
 def handle_login():
     username = request.form['username']
     pswd = request.form['password']
-    print(username,pswd)
-    
-    return flask.render_template("index.html")
-
+    if request.form['register-submit']:
+        email = request.form['email']
+        if request.form['confirm-password'] == pswd:
+            u = user(username,pswd,email)
+            db.session.add(u)
+            db.session.commit()
+        return redirect(url_for('login'))
+    elif request.form['login-submit']:
+        print(username, pswd)
+        if check_user(username, pswd):
+            return flask.render_template("index.html")
+        else:
+            return redirect(url_for('login'))
 
 
 @app.route("/index.html")
@@ -68,31 +73,40 @@ def form():
     return flask.render_template("forms.html")
 
 
-@app.route("/data")
-@app.route("/data/<int:ndata>")
-def data(ndata=100):
-    """
-    On request, this returns a list of ``ndata`` randomly made data points.
+'''
+models
+'''
 
-    :param ndata: (optional)
-        The number of data points to return.
 
-    :returns data:
-        A JSON string of ``ndata`` data points.
+class user(db.Model):
+    __tablename__ = 'users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(64), unique=True, index=True)
+    pswd = db.Column(db.String(64))
+    email = db.Column(db.String(64))
 
-    """
-    x = 10 * np.random.rand(ndata) - 5
-    y = 0.5 * x + 0.5 * np.random.randn(ndata)
-    A = 10. ** np.random.rand(ndata)
-    c = np.random.rand(ndata)
-    return json.dumps([{"_id": i, "x": x[i], "y": y[i], "area": A[i],
-                        "color": c[i]}
-                       for i in range(ndata)])
+    def __init__(self, username, pswd, email):
+        self.username = username
+        self.email = email
+        self.pswd = pswd
+
+    def __repr__(self):
+        return '<User %r>' % self.username
+
+
+def check_user(username, pswd):
+    u = user.query.filter_by(username=username).first()
+    if u:
+        if u.pswd == pswd:
+            return True
+        else:
+            return False
+    else:
+        return False
 
 
 
 if __name__ == "__main__":
-    import os
 
     port = 8000
 
