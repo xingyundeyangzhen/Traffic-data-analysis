@@ -6,10 +6,15 @@ import os
 import flask
 from flask import request, redirect, flash, url_for
 from flask_sqlalchemy import SQLAlchemy
+import csv,sqlite3
+
 
 app = flask.Flask(__name__)
+UPLOAD_FOLDER = '/path/to/the/uploads'
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif','csv'])
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 db = SQLAlchemy(app)
 
 
@@ -20,24 +25,27 @@ def login():
     """
     return flask.render_template("login.html")
 
-
-@app.route('/login.html', methods=['post', 'get'])
+@app.route('/register', methods=['post', 'get'])
+@app.route('/login', methods=['post', 'get'])
 def handle_login():
-    username = request.form['username']
-    pswd = request.form['password']
-    if request.form['register-submit']:
-        email = request.form['email']
-        if request.form['confirm-password'] == pswd:
+    username = request.form.get('username',None)
+    pswd = request.form.get('password',None)
+    if request.form.get('register-submit',None) and username and pswd :
+        email = request.form.get('email',None)
+        if request.form.get('confirm-password') == pswd:
             u = user(username,pswd,email)
             db.session.add(u)
             db.session.commit()
         return redirect(url_for('login'))
-    elif request.form['login-submit']:
+    elif request.form.get('login-submit') and username and pswd:
         print(username, pswd)
         if check_user(username, pswd):
             return flask.render_template("index.html")
         else:
-            return redirect(url_for('login'))
+            redirect(url_for('login'))
+    else:
+        return redirect(url_for('login'))
+    
 
 
 @app.route("/index.html")
@@ -104,15 +112,23 @@ def check_user(username, pswd):
     else:
         return False
 
+'''
+functions
+'''
+def  dataImport(csvpath,dbpath,tablename):
+    reader = csv.DictReader(open(csvpath,"rb"),delimiter=',',quoting=csv.QUOTE_MINIMAL)
+    conn = sqlite3.connect(dbpath)
+    # shz: fix error with non-ASCII input
+    conn.text_factory = str
+    c = conn.cursor()
+    create_query = 'CREATE TABLE '+tablename +' ("cn" TEXT,"en" TEXT,"lat" DOUBLE,"lon" DOUBLE,"points" DOUBLE,"count" INTEGER,"intro" TEXT,"photo" TEXT,"url" TEXT,"content" TEXT)' 
+    c.execute(create_query)
+    for row in reader:
+        to_db = [row['cn'], row['en'],row['lat'],row['lon'],row['points'],row['count'],row['intro'],row['photo'],row['url'],row['content']]
+        c.execute('INSERT INTO '+tablename+' (cn, en, lat,lon,points,count,intro,photo,url,content) VALUES (?, ?, ?,?, ?, ?,?, ?, ?,?);', to_db)
+    conn.commit()
 
 
 if __name__ == "__main__":
-
     port = 8000
-
-    # Open a web browser pointing at the app.
-    # os.system("open http://localhost:{0}".format(port))
-
-    # Set up the development server on port 8000.
-    # app.debug = True
     app.run(port=port)
