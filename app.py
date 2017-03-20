@@ -25,6 +25,7 @@ def login():
     """
     return flask.render_template("login.html")
 
+
 @app.route('/register', methods=['post', 'get'])
 @app.route('/login', methods=['post', 'get'])
 def handle_login():
@@ -46,7 +47,6 @@ def handle_login():
     else:
         return redirect(url_for('login'))
     
-
 
 @app.route("/index.html")
 def index():
@@ -102,6 +102,30 @@ class user(db.Model):
         return '<User %r>' % self.username
 
 
+class Data(db.model):
+    __tablename__ = 'data'
+    LinkRef = db.Column(primary_key=True)
+    LinkDescription = db.Column(db.Text)
+    Date = db.Column(db.DateTime)
+    TimePeriod = db.Column(db.Integer)
+    AverageJT = 
+    AverageSpeed = 
+    DataQuality = db.Column(db.Integer)
+    LinkLength = 
+    Flow = 
+
+    def __init__(self, *param):
+        self.LinkRef = param[0]
+        self.LinkDescription = param[1]
+        self.Date = param[2]
+        self.TimePeriod = param[3]
+        self.AverageJT = param[4]
+        self.AverageSpeed = param[5]
+        self.DataQuality = param[6]
+        self.LinkLength = param[7]
+        self.Flow = param[8]
+
+
 def check_user(username, pswd):
     u = user.query.filter_by(username=username).first()
     if u:
@@ -115,18 +139,21 @@ def check_user(username, pswd):
 '''
 functions
 '''
-def  dataImport(csvpath,dbpath,tablename):
-    reader = csv.DictReader(open(csvpath,"rb"),delimiter=',',quoting=csv.QUOTE_MINIMAL)
-    conn = sqlite3.connect(dbpath)
-    # shz: fix error with non-ASCII input
-    conn.text_factory = str
-    c = conn.cursor()
-    create_query = 'CREATE TABLE '+tablename +' ("cn" TEXT,"en" TEXT,"lat" DOUBLE,"lon" DOUBLE,"points" DOUBLE,"count" INTEGER,"intro" TEXT,"photo" TEXT,"url" TEXT,"content" TEXT)' 
-    c.execute(create_query)
+
+
+def readcsv(csvpath):
+    reader = csv.DictReader(open(csvpath, "rb"), delimiter=',', quoting=csv.QUOTE_MINIMAL)
+    ret = []
     for row in reader:
-        to_db = [row['cn'], row['en'],row['lat'],row['lon'],row['points'],row['count'],row['intro'],row['photo'],row['url'],row['content']]
-        c.execute('INSERT INTO '+tablename+' (cn, en, lat,lon,points,count,intro,photo,url,content) VALUES (?, ?, ?,?, ?, ?,?, ?, ?,?);', to_db)
-    conn.commit()
+        datamodel = Data(row['LinkRef'], row['LinkDescription'], row['Date'], row['TimePeriod'], row['AverageJT'], row['AverageSpeed'],row['DataQuality'],row['LinkLength'],row['Flow'])
+        ret.append(datamodel)
+    return ret
+
+
+def dataImport(datamodels):
+    for datamodel in datamodels:
+        db.session.add(datamodel)
+        db.session.commit()
 
 
 if __name__ == "__main__":
