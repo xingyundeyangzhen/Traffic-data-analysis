@@ -1,0 +1,84 @@
+.grid .tick {
+    shape-rendering: crispEdges;
+    stroke: lightgray;
+    stroke-dasharray: 1px 3px;
+    ;
+}
+
+.grid path {
+    stroke-width: 1;
+}
+
+.axis {
+    font: 12px sans-serif;
+}
+
+.axis line {
+    shape-rendering: crispEdges;
+    fill: none;
+    stroke: gray;
+}
+
+.axis text {
+    fill: gray;
+    shape-rendering: crispEdges;
+}
+
+.axis path {
+    shape-rendering: crispEdges;
+    stroke: gray;
+}
+
+.axis tick {
+    stroke: gray;
+}
+
+.line {
+    fill: none;
+    stroke: #28556F;
+    stroke-width: 3px;
+}
+
+.overlay {
+    fill: none;
+    pointer-events: all;
+}
+
+
+/*mouseover styles*/
+
+.focus circle {
+    fill: white;
+    stroke: #28556F;
+    stroke-width: 3px;
+}
+
+.focus text {
+    font: 12px sans-serif;
+}
+
+.label {
+    font: 12px sans-serif;
+    fill: white;
+}
+
+.labelSmall {
+    font: 10px sans-serif;
+}
+
+.focus line {
+    stroke: gray;
+    stroke-width: 1px;
+}
+
+div.tooltip {
+    position: absolute;
+    text-align: center;
+    padding: 4px;
+    font: 12px sans-serif;
+    color: white;
+    background: black;
+    border: 0px;
+    border-radius: 4px;
+    pointer-events: none;
+}

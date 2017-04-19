@@ -1,0 +1,239 @@
+{% extends "basic.html" %} {%block body%}
+
+
+
+<h1>Chart Demos</h1>
+<h2>Modules in <code>linechart.js</code> and require <code>linechart.css</code></h2>
+<p>Three different csvs generate these charts, <code>airport-strikes.csv</code>, <code>us-strikes.csv</code>, and <code>sp500.csv</code>.
+
+    <div class="container">
+        <div class="row">
+            <div class="col-xs-12">
+                <div id="graphic1"></div>
+            </div>
+
+            <div class="col-xs-4">
+                <div id="graphic2"></div>
+            </div>
+
+            <div class="col-xs-8">
+                <div id="graphic3"></div>
+            </div>
+
+            <div class="col-xs-6">
+                <div id="graphic4"></div>
+            </div>
+            <div class="col-xs-6">
+                <div id="graphic5"></div>
+            </div>
+
+            <div class="col-xs-12">
+                <div id="graphic6"></div>
+            </div>
+
+
+        </div>
+    </div>
+
+
+    <div class="footer">
+        <p>Source: FAA</p>
+        <p>Credit: <a href="http://www.twitter.com/scottpham">Scott Pham</a>/NBC Bay Area</p>
+    </div>
+    <script src="https://d3js.org/d3.v3.min.js">
+    </script>
+
+    <script src="./static/js/lineChart.js" type="text/javascript"></script>
+
+    <script type="text/javascript">
+        function pad(num, n) {
+            return Array(n > num ? (n - ('' + num).length + 1) : 0).join(0) + num;
+        }
+        //set options
+        //small sfo chart
+
+        var format = d3.time.format("%m/%d/%y %H:%M");
+        //var c = format.parse("03/01/15 00:00");
+        var graphic1 = d3.custom.lineChart()
+            .xAccess(function(d) {
+                var m = (d.TimePeriod * 15) % 60;
+                var h = parseInt((d.TimePeriod * 15) / 60);
+                var b = d.Date + ' ' + pad(h, 2) + ':' + pad(m, 2);
+                var a = format.parse(b);
+                return a;
+            })
+            .yAccess(function(d) {
+                return +d.Flow;
+            })
+            .yAxisLabel("SFO")
+            .xFormat(d3.time.format("%m/%d/%y"))
+            .xScale(d3.time.scale())
+            .tooltipFormat(d3.format("0.2f"))
+            .strokeWidth(5)
+            // .aspect(16, 9)   
+            .marginLeft(45);
+        //call data
+        d3.csv("./static/MAR16.csv", function(data) {
+            d3.select("#graphic1")
+                .datum(data)
+                .call(graphic1);
+        });
+        //end chart
+
+        // //small oakland chart
+        // var graphic2 = d3.custom.lineChart()
+        //     .xAccess(function(d) {
+        //         return d.year;
+        //     })
+        //     .yAccess(function(d) {
+        //         return +d.oak;
+        //     })
+        //     .yAxisLabel("OAK")
+        //     .aspect(4, 3)
+        //     .tooltipFormat(d3.format("0.2f"))
+        //     .strokeWidth(5)
+        //     .marginLeft(45);
+
+        // d3.csv("airport-strikes.csv", function(data) {
+        //     d3.select("#graphic2")
+        //         .datum(data)
+        //         .call(graphic2);
+        // });
+        // //end chart
+
+        // //small san jose chart
+        // var graphic3 = d3.custom.lineChart()
+        //     .xAccess(function(d) {
+        //         return d.year;
+        //     })
+        //     .yAccess(function(d) {
+        //         return +d.sjc;
+        //     })
+        //     .yAxisLabel("SJC")
+        //     .aspect(4, 3)
+        //     .tooltipFormat(d3.format("0.2f"))
+        //     .strokeWidth(5)
+        //     .marginLeft(45);
+
+        // d3.csv("airport-strikes.csv", function(data) {
+        //     d3.select("#graphic3")
+        //         .datum(data)
+        //         .call(graphic3);
+        // });
+        // //end chart
+
+
+        // //big flight chart
+        // var flights = d3.custom.lineChart()
+        //     .xAccess(function(d) {
+        //         return d.year;
+        //     })
+        //     .yAccess(function(d) {
+        //         return +d.flights;
+        //     })
+        //     .yAxisLabel("Total Flights in US")
+        //     .tooltipFormat(d3.format(",f"))
+        //     .strokeColor("maroon")
+        //     .xScale(d3.time.scale())
+        //     .marginLeft(55)
+        //     .tickSize(10)
+        //     .tooltipString("Flights");
+
+        // //specify data source
+        // d3.csv("us-strikes.csv", function(datas) {
+        //     d3.selectAll("#graphic4")
+        //         .datum(datas)
+        //         .call(flights);
+        // });
+        // //medium stock chart
+        // var formatDate = d3.time.format("%b %Y");
+
+        // var stockChart = d3.custom.lineChart()
+        //     .xAccess(function(d) {
+        //         var a = formatDate.parse(d.date);
+        //         return a;
+        //     })
+        //     .yAccess(function(d) {
+        //         return +d.price;
+        //     })
+        //     .yAxisLabel("S&P Numbers")
+        //     .yAxisFormat(d3.format("s"))
+        //     //.tooltipFormat(d3.format("d"))
+        //     .xFormat(d3.time.format("%Y"))
+        //     .xScale(d3.time.scale())
+        //     .marginLeft(50)
+        //     .tickSize(10)
+        //     .tooltipString("dollars");
+
+        // //specify data source
+        // d3.csv("sp500.csv", function(datas) {
+        //     d3.selectAll("#graphic5")
+        //         .datum(datas)
+        //         .call(stockChart);
+        // });
+        // //end chart
+
+
+
+        // //big airports chart
+        // var graphic4 = d3.custom.lineChart()
+        //     .xAccess(function(d) {
+        //         return d.year;
+        //     })
+        //     .yAccess(function(d) {
+        //         return +d.sfo;
+        //     })
+        //     .yAxisLabel("Bay Area Airports")
+        //     .tooltipFormat(d3.format("0.2f"))
+        //     .strokeWidth(5)
+        //     .yMax(26)
+        //     .hover("false")
+        //     .marginLeft(45);
+
+        // d3.csv("airport-strikes.csv", function(data) {
+        //     d3.select("#graphic6")
+        //         .datum(data)
+        //         .call(graphic4);
+        // });
+        // //end chart
+
+        // //adding oakland line to sfo chart
+        // var secondLine = d3.custom.addLine()
+        //     .xAccess(function(d) {
+        //         return d.year;
+        //     })
+        //     .yAccess(function(d) {
+        //         return +d.oak;
+        //     })
+        //     .strokeColor("lightblue")
+        //     .strokeWidth(5)
+        //     .yMax(26);
+
+        // d3.csv("airport-strikes.csv", function(data) {
+        //     d3.select("#graphic6")
+        //         .datum(data)
+        //         .call(secondLine);
+        // });
+        // //end add line
+
+        // //adding san jose to sfo chart
+        // var thirdLine = d3.custom.addLine()
+        //     .xAccess(function(d) {
+        //         return d.year;
+        //     })
+        //     .yAccess(function(d) {
+        //         return +d.sjc;
+        //     })
+        //     .strokeColor("lightgreen")
+        //     .strokeWidth(5)
+        //     .yMax(26);
+
+        // d3.csv("airport-strikes.csv", function(data) {
+        //     d3.select("#graphic6")
+        //         .datum(data)
+        //         .call(thirdLine);
+        // });
+    </script>
+
+
+    {%endblock%}

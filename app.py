@@ -3,14 +3,15 @@ This file is part of the flask+d3 Hello World project.
 """
 import json
 import os
+import threading
 import flask
 from flask import request, redirect, flash, url_for
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy 
 import csv,sqlite3
-
+ 
 
 app = flask.Flask(__name__)
-UPLOAD_FOLDER = '/path/to/the/uploads'
+UPLOAD_FOLDER = './datafile'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif','csv'])
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
@@ -26,6 +27,15 @@ def login():
     return flask.render_template("login.html")
 
 
+@app.route('/uploader', methods=['POST'])
+def upload_file():
+    file = request.files['file']
+    filename = file.filename
+    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    file.save(path)
+    importdata(path)
+    return 'succcess'
+
 @app.route('/register', methods=['post', 'get'])
 @app.route('/login', methods=['post', 'get'])
 def handle_login():
@@ -36,7 +46,7 @@ def handle_login():
         if request.form.get('confirm-password') == pswd:
             u = user(username,pswd,email)
             db.session.add(u)
-            db.session.commit()
+            db.session.commit() 
         return redirect(url_for('login'))
     elif request.form.get('login-submit') and username and pswd:
         print(username, pswd)
@@ -59,10 +69,18 @@ def index():
 
 @app.route("/charts.html")
 def chart():
-    """
+    """ 
     When you request for the chart page 
     """
     return flask.render_template("charts.html")
+
+
+@app.route("/charts1.html")
+def chart1():
+    """
+    When you request for the chart page 
+    """
+    return flask.render_template("charts1.html")
 
 
 @app.route("/tables.html")
@@ -102,17 +120,17 @@ class user(db.Model):
         return '<User %r>' % self.username
 
 
-class Data(db.model):
+class Data(db.Model):
     __tablename__ = 'data'
     LinkRef = db.Column(primary_key=True)
     LinkDescription = db.Column(db.Text)
-    Date = db.Column(db.DateTime)
+    Date = db.Column(db.String(64))
     TimePeriod = db.Column(db.Integer)
-    AverageJT = 
-    AverageSpeed = 
+    AverageJT = db.Column(db.Float)
+    AverageSpeed = db.Column(db.Float)
     DataQuality = db.Column(db.Integer)
-    LinkLength = 
-    Flow = 
+    LinkLength = db.Column(db.Float)
+    Flow = db.Column(db.Float)
 
     def __init__(self, *param):
         self.LinkRef = param[0]
@@ -141,19 +159,32 @@ functions
 '''
 
 
-def readcsv(csvpath):
-    reader = csv.DictReader(open(csvpath, "rb"), delimiter=',', quoting=csv.QUOTE_MINIMAL)
-    ret = []
-    for row in reader:
-        datamodel = Data(row['LinkRef'], row['LinkDescription'], row['Date'], row['TimePeriod'], row['AverageJT'], row['AverageSpeed'],row['DataQuality'],row['LinkLength'],row['Flow'])
-        ret.append(datamodel)
-    return ret
+import csv
+import json
+ 
+# 读csv文件
+def read_csv(file):
+    csv_rows = []
+    with open(file) as csvfile:
+        reader = csv.DictReader(csvfile)
+        title = reader.fieldnames
+        for row in reader:
+            csv_rows.extend([{title[i]:row[title[i]] for i in range(len(title))}])
+        return csv_rows
+ 
+# 写json文件
+def write_json(data, json_file, format=None):
+    with open(json_file, "w") as f:
+        if format == "good":
+            f.write(json.dumps(data, sort_keys=False, indent=4, separators=(',', ': '),encoding="utf-8",ensure_ascii=False))
+        else:
+            f.write(json.dumps(data))
+ 
+# write_json(read_csv('student.csv'), 'student.json', 'good')
+        
 
 
-def dataImport(datamodels):
-    for datamodel in datamodels:
-        db.session.add(datamodel)
-        db.session.commit()
+        
 
 
 if __name__ == "__main__":
