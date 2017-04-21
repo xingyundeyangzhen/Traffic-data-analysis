@@ -5,10 +5,9 @@ import json
 import os
 import threading
 import flask
-from flask import request, redirect, flash, url_for
+from flask import request, redirect, flash, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy 
 import csv,sqlite3
- 
 
 app = flask.Flask(__name__)
 UPLOAD_FOLDER = './datafile'
@@ -33,7 +32,6 @@ def upload_file():
     filename = file.filename
     path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file.save(path)
-    importdata(path)
     return 'succcess'
 
 @app.route('/register', methods=['post', 'get'])
@@ -67,12 +65,36 @@ def index():
     return flask.render_template("index.html")
 
 
+@app.route("/filter",methods=['post', 'get'])
+def filter():
+    linkref = request.form.get('LinkRef',None)
+    DataQuality = request.form.get('DataQuality',None)
+    fromdate = request.form.get('fromDate',None)
+    todate = request.form.get('toDate',None)
+    data = read_csv("./static/MAR16.csv")
+    print(linkref,DataQuality,fromdate,todate)
+    print(data)
+    dic={
+        'LinkRef':linkref,
+        'DataQuality':DataQuality,
+        'fromDate':fromdate,
+        'toDate':todate
+    }
+    return flask.render_template("charts.html",data =json.dumps(data),  test=json.dumps(dic))
+
+
+
 @app.route("/charts.html")
 def chart():
     """ 
     When you request for the chart page 
     """
-    return flask.render_template("charts.html")
+    t = {
+        'a': 1,
+        'b': 2,
+        'c': [3, 4, 5]
+    }
+    return flask.render_template("charts.html",test=t)
 
 
 @app.route("/charts1.html")
@@ -170,7 +192,7 @@ def read_csv(file):
         title = reader.fieldnames
         for row in reader:
             csv_rows.extend([{title[i]:row[title[i]] for i in range(len(title))}])
-        return csv_rows
+    return json.dumps(csv_rows)
  
 # 写json文件
 def write_json(data, json_file, format=None):
