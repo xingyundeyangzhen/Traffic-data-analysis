@@ -71,16 +71,17 @@ def filter():
     DataQuality = request.form.get('DataQuality',None)
     fromdate = request.form.get('fromDate',None)
     todate = request.form.get('toDate',None)
-    data = read_csv("./static/MAR16.csv")
+    # data = read_csv("./static/MAR16.csv")
+    # write_json(read_csv('./static/MAR16.csv'), './static/MAR16.json', 'good')
     print(linkref,DataQuality,fromdate,todate)
-    print(data)
+    # print(data)
     dic={
         'LinkRef':linkref,
         'DataQuality':DataQuality,
         'fromDate':fromdate,
         'toDate':todate
     }
-    return flask.render_template("charts.html",data =json.dumps(data),  test=json.dumps(dic))
+    return flask.render_template("charts.html", filter = json.dumps(dic))
 
 
 
@@ -89,12 +90,7 @@ def chart():
     """ 
     When you request for the chart page 
     """
-    t = {
-        'a': 1,
-        'b': 2,
-        'c': [3, 4, 5]
-    }
-    return flask.render_template("charts.html",test=t)
+    return flask.render_template("charts.html")
 
 
 @app.route("/charts1.html")
@@ -184,25 +180,24 @@ functions
 import csv
 import json
  
-# 读csv文件
-def read_csv(file):
-    csv_rows = []
-    with open(file) as csvfile:
-        reader = csv.DictReader(csvfile)
-        title = reader.fieldnames
-        for row in reader:
-            csv_rows.extend([{title[i]:row[title[i]] for i in range(len(title))}])
-    return json.dumps(csv_rows)
+# # 读csv文件
+# def read_csv(file):
+#     csv_rows = []
+#     with open(file) as csvfile:
+#         reader = csv.DictReader(csvfile)
+#         title = reader.fieldnames
+#         for row in reader:
+#             csv_rows.extend([{title[i]:row[title[i]] for i in range(len(title))}])
+#     return json.dumps(csv_rows)
  
-# 写json文件
-def write_json(data, json_file, format=None):
-    with open(json_file, "w") as f:
-        if format == "good":
-            f.write(json.dumps(data, sort_keys=False, indent=4, separators=(',', ': '),encoding="utf-8",ensure_ascii=False))
-        else:
-            f.write(json.dumps(data))
- 
-# write_json(read_csv('student.csv'), 'student.json', 'good')
+# # 写json文件
+# def write_json(data, json_file, format=None):
+#     with open(json_file, "w") as f:
+#         if format == "good":
+#             f.write(json.dumps(data, sort_keys=False, indent=4, separators=(',', ': '),ensure_ascii=False))
+#         else:
+#             f.write(json.dumps(data))
+   
         
 
 
