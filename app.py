@@ -65,16 +65,12 @@ def index():
     return flask.render_template("index.html")
 
 
-@app.route("/filter",methods=['post', 'get'])
-def filter():
+@app.route("/filter_chart1",methods=['post', 'get'])
+def filter_chart1():
     linkref = request.form.get('LinkRef',None)
     DataQuality = request.form.get('DataQuality',None)
     fromdate = request.form.get('fromDate',None)
     todate = request.form.get('toDate',None)
-    # data = read_csv("./static/MAR16.csv")
-    # write_json(read_csv('./static/MAR16.csv'), './static/MAR16.json', 'good')
-    print(linkref,DataQuality,fromdate,todate)
-    # print(data)
     dic={
         'LinkRef':linkref,
         'DataQuality':DataQuality,
@@ -84,13 +80,33 @@ def filter():
     return flask.render_template("charts.html", filter = json.dumps(dic))
 
 
+@app.route("/filter_chart2",methods=['post', 'get'])
+def filter_chart2():
+    linkref = request.form.get('LinkRef', None)
+    DataQuality = request.form.get('DataQuality', None)
+    fromdate = request.form.get('fromDate', None)
+    todate = request.form.get('toDate', None)
+    dic={
+        'LinkRef':linkref,
+        'DataQuality':DataQuality,
+        'fromDate':fromdate,
+        'toDate':todate
+    }
+    return flask.render_template("charts1.html", filter = json.dumps(dic))
+
 
 @app.route("/charts.html")
 def chart():
     """ 
     When you request for the chart page 
     """
-    return flask.render_template("charts.html")
+    dic ={
+        'LinkRef':'AL1000',
+        'DataQuality':None,
+        'fromDate':None,
+        'toDate':None
+    }
+    return flask.render_template("charts.html",filter = json.dumps(dic))
 
 
 @app.route("/charts1.html")
@@ -98,7 +114,13 @@ def chart1():
     """
     When you request for the chart page 
     """
-    return flask.render_template("charts1.html")
+    dic ={
+        'LinkRef':'AL1000',
+        'DataQuality':None,
+        'fromDate':None,
+        'toDate':None
+    }
+    return flask.render_template("charts1.html",filter = json.dumps(dic))
 
 
 @app.route("/tables.html")

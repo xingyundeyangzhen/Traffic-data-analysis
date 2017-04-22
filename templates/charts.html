@@ -103,7 +103,7 @@
         <!--filter form-->
         <div class="row">
             <div class="col-lg-8">
-                <form id="convFilter" class="form-horizontal" method="post" action="/filter">
+                <form id="convFilter" class="form-horizontal" method="post" action="/filter_chart1">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="col-sm-4 control-label" for="keywords">LinkRef</label>
@@ -138,7 +138,7 @@
                             </div>
                         </div>
                         <div class="col-sm-offset-4 col-sm-8">
-                            <button type="button" id="find-all" class="btn btn-primary">Find All</button>
+                            <!--<button type="button" id="find-all" class="btn btn-primary">Find All</button>-->
                             <button type="submit" class="btn btn-primary">Search</button>
                         </div>
                     </div>
@@ -353,6 +353,7 @@
 
 
     var format = d3.timeParse("%m/%d/%y %H:%M");
+    var dayformat = d3.timeParse("%m/%d/%y");
 
     var x = d3.scaleTime().range([0, width]), //format(d3.timeFormat("%y/%m/%d")),
         x2 = d3.scaleTime().range([0, width]),
@@ -436,13 +437,13 @@
 
         if (filter['toDate']){
             data = data.filter(function(row) {
-                return row['toDate'] < filter['toDate'];
+                return row['Date'] < filter['toDate'];
              })
         };
         
         if (filter['fromDate']){
             data = data.filter(function(row) {
-                return row['fromDate'] > filter['fromDate'];
+                return row['Date'] > filter['fromDate'];
              })
         };
 

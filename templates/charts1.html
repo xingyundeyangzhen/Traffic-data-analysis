@@ -69,42 +69,42 @@
         <!--filter form-->
         <div class="row">
             <div class="col-lg-8">
-                <form id="convFilter" class="form-horizontal" action="/admin/conversations/filter">
+                <form id="convFilter" class="form-horizontal" method="post" action="/filter_chart2">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="col-sm-4 control-label" for="keywords">LinkRef</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="keywords" id="keywords" placeholder="e.g. AL100">
+                                <input type="text" class="form-control" name="LinkRef" id="LinkRef" placeholder="e.g. AL100">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="col-sm-4 control-label" for="dialogAct">DataQuality</label>
+                            <label class="col-sm-4 control-label" for="DataQuality">DataQuality</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" name="dialogAct" id="dialogAct" placeholder="e.g. 1">
+                                <input type="text" class="form-control" name="DataQuality" id="DataQuality" placeholder="e.g. 1">
                             </div>
                         </div>
-                        <div class="form-group">
+                        <!--<div class="form-group">
                             <label class="col-sm-4 control-label" for="slot">AverageSpeed</label>
                             <div class="col-sm-8">
                                 <input type="text" class="form-control" name="slot" id="slot" placeholder="e.g. >127.5">
                             </div>
-                        </div>
+                        </div>-->
                     </div>
                     <div class="col-md-6">
                         <div class="form-group ">
                             <label class="col-sm-4 control-label" for="fromDate">From</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" id="fromDate" placeholder="e.g. 01/25/15">
+                                <input type="text" class="form-control" name="fromDate" id="fromDate" placeholder="e.g. 01/25/15">
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-4 control-label" for="toDate">To</label>
                             <div class="col-sm-8">
-                                <input type="text" class="form-control" id="toDate" placeholder="e.g. 02/25/15">
+                                <input type="text" class="form-control" name="toDate" id="toDate" placeholder="e.g. 02/25/15">
                             </div>
                         </div>
                         <div class="col-sm-offset-4 col-sm-8">
-                            <button type="button" id="find-all" class="btn btn-primary">Find All</button>
+                            <!--<button type="button" id="find-all" class="btn btn-primary">Find All</button>-->
                             <button type="submit" class="btn btn-primary">Search</button>
                         </div>
                     </div>
@@ -464,6 +464,7 @@
 </script>-->
 
 <script>
+    var filter = {{filter|tojson}};
     var margin = {
             top: 30,
             right: 10,
@@ -488,12 +489,37 @@
         .append("g")
         .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    d3.csv("./static/MAR16.csv", function(error, cars) {
+    d3.csv("./static/MAR16.csv", function(error, data) {
 
         // Extract the list of dimensions and create a scale for each.
-        x.domain(dimensions = d3.keys(cars[0]).filter(function(d) {
+        if (filter['LinkRef']){
+            data = data.filter(function(row) {
+                return row['LinkRef'] == filter['LinkRef'];
+             })
+        };
+
+        if (filter['DataQuality']){
+            data = data.filter(function(row) {
+                return row['DataQuality'] == filter['DataQuality'];
+             })
+        }; 
+
+        if (filter['toDate']){
+            data = data.filter(function(row) {
+                return row['Date'] < filter['toDate'];
+             })
+        };
+        
+        if (filter['fromDate']){
+            data = data.filter(function(row) {
+                return row['Date'] > filter['fromDate'];
+             })
+        };
+
+
+        x.domain(dimensions = d3.keys(data[0]).filter(function(d) {
             return d != "LinkDescription" && d != "LinkRef" && d != "TimePeriod" && d != "Date" && (y[d] = d3.scale.linear()
-                .domain(d3.extent(cars, function(p) {
+                .domain(d3.extent(data, function(p) {
                     return +p[d];
                 }))
                 .range([height, 0]));
@@ -503,7 +529,7 @@
         background = svg.append("g")
             .attr("class", "background")
             .selectAll("path")
-            .data(cars)
+            .data(data)
             .enter().append("path")
             .attr("d", path);
 
@@ -511,7 +537,7 @@
         foreground = svg.append("g")
             .attr("class", "foreground")
             .selectAll("path")
-            .data(cars)
+            .data(data)
             .enter().append("path")
             .attr("d", path);
 
