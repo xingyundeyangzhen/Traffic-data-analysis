@@ -123,6 +123,19 @@ def chart1():
     return flask.render_template("charts1.html",filter = json.dumps(dic))
 
 
+@app.route("/charts2.html")
+def chart2():
+    """
+    When you request for the chart page 
+    """
+    dic ={
+        'LinkRef':'AL1000',
+        'DataQuality':None,
+        'fromDate':None,
+        'toDate':None
+    }
+    return flask.render_template("charts2.html")
+
 @app.route("/tables.html")
 def table():
     """

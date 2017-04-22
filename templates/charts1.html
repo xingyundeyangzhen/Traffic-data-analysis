@@ -465,6 +465,7 @@
 
 <script>
     var filter = {{filter|tojson}};
+    filter = JSON.parse(filter);
     var margin = {
             top: 30,
             right: 10,
@@ -518,7 +519,7 @@
 
 
         x.domain(dimensions = d3.keys(data[0]).filter(function(d) {
-            return d != "LinkDescription" && d != "LinkRef" && d != "TimePeriod" && d != "Date" && (y[d] = d3.scale.linear()
+            return d != "LinkDescription" && d != "LinkRef" && d != "TimePeriod" && d != "LinkLength" && d != "Date" && (y[d] = d3.scale.linear()
                 .domain(d3.extent(data, function(p) {
                     return +p[d];
                 }))
