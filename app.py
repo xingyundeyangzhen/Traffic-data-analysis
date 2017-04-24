@@ -95,6 +95,21 @@ def filter_chart2():
     return flask.render_template("charts1.html", filter = json.dumps(dic))
 
 
+@app.route("/filter_chart3",methods=['post', 'get'])
+def filter_chart3():
+    linkref = request.form.get('LinkRef',None)
+    DataQuality = request.form.get('DataQuality',None)
+    fromdate = request.form.get('fromDate',None)
+    todate = request.form.get('toDate',None)
+    dic={
+        'LinkRef':linkref,
+        'DataQuality':DataQuality,
+        'fromDate':fromdate,
+        'toDate':todate
+    }
+    return flask.render_template("charts2.html", filter = json.dumps(dic))
+
+
 @app.route("/charts.html")
 def chart():
     """ 
@@ -134,7 +149,22 @@ def chart2():
         'fromDate':None,
         'toDate':None
     }
-    return flask.render_template("charts2.html")
+    return flask.render_template("charts2.html",filter = json.dumps(dic))
+
+
+@app.route("/charts3.html")
+def chart3():
+    """
+    When you request for the chart page 
+    """
+    # dic ={
+    #     'LinkRef':'AL1000',
+    #     'DataQuality':None,
+    #     'fromDate':None,
+    #     'toDate':None
+    # }
+    return flask.render_template("charts3.html")
+
 
 @app.route("/tables.html")
 def table():

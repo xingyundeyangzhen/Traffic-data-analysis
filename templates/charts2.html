@@ -1,71 +1,17 @@
 {% extends "basic.html" %} {%block body%}
-<!--<style type="text/css">
-    /* base styles */
-    
-    html {
-        -webkit-text-size-adjust: none;
-    }
-    
-    body {
-        margin: 0;
-        padding: 0;
-        font: 14px/1.4 Arial, Helvetica, sans-serif;
-        color: black;
-    }
-    
-    h1 {
-        margin: 0 0 6px 0;
-        font-size: 20px;
-        color: black;
-    }
-    
-    h2 {
-        font-weight: normal;
-        color: #666;
-        font-size: 14px;
-        margin: 0 0 22px 0;
-    }
-    
-    .footnotes {
-        margin-bottom: 20px;
-    }
-    
-    .footnotes h4 {
-        margin: 2px 0 7px 0;
-        color: #666;
-        font-size: 11px;
-    }
-    
-    .footnotes p,
-    .footer p {
-        margin: 2px 0 0 0;
-        font-size: 11px;
-        line-height: 1.3;
-        color: #808080;
-    }
-    
-    a,
-    a:link,
-    a:visited {
-        color: #4774CC;
-        text-decoration: none;
-    }
-    
-    a:hover,
-    a:active {
-        opacity: 0.7;
-    }
-</style>-->
+
 <style>
-    .area {
-        fill: steelblue;
-        clip-path: url(#clip);
-    }
-    
-    .zoom {
-        cursor: move;
-        fill: none;
-        pointer-events: all;
+    div.tooltip {
+        position: absolute;
+        text-align: left;
+        width: 120px;
+        height: 30px;
+        padding: 2px;
+        font: 12px sans-serif;
+        background: lightsteelblue;
+        border: 0px;
+        border-radius: 8px;
+        pointer-events: none;
     }
 </style>
 
@@ -103,7 +49,7 @@
         <!--filter form-->
         <div class="row">
             <div class="col-lg-8">
-                <form id="convFilter" class="form-horizontal" method="post" action="/filter_chart1">
+                <form id="convFilter" class="form-horizontal" method="post" action="/filter_chart3">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="col-sm-4 control-label" for="keywords">LinkRef</label>
@@ -155,8 +101,8 @@
                         <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Scatter plot chart</h3>
                     </div>
                     <div class="panel-body">
-                        <div class="col-xs-12">
-                            <svg id="scatter-plot-chart" width="960" height="500"></svg>
+                        <div id="scatter-plot-chart" class="col-xs-12">
+                            <!--<svg width="960" height="500"></svg>-->
                         </div>
                     </div>
                 </div>
@@ -169,7 +115,211 @@
 </div>
 
 <script src="https://d3js.org/d3.v4.min.js"></script>
+<script>
+    var filter = {{filter|tojson}};
+    filter = JSON.parse(filter);
+    var margin = {
+        top: 20,
+        right: 20,
+        bottom: 30,
+        left: 40
+    };
+    width = 960 - margin.left - margin.right,
+        height = 500 - margin.top - margin.bottom;
 
+    var tooltip = d3.select("body").append("div")
+        .attr("class", "tooltip")
+        .style("opacity", 0);
+
+    var x = d3.scaleLinear()
+        .range([0, width])
+        .nice();
+
+    var y = d3.scaleLinear()
+        .range([height, 0]);
+
+    var xAxis = d3.axisBottom(x).ticks(12),
+        yAxis = d3.axisLeft(y).ticks(12 * height / width);
+
+    var brush = d3.brush().extent([
+            [0, 0],
+            [width, height]
+        ]).on("end", brushended),
+        idleTimeout,
+        idleDelay = 350;
+
+    var svg = d3.select("#scatter-plot-chart").append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+    var clip = svg.append("defs").append("svg:clipPath")
+        .attr("id", "clip")
+        .append("svg:rect")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("x", 0)
+        .attr("y", 0);
+
+    var scatter = svg.append("g")
+        .attr("id", "scatterplot")
+        .attr("clip-path", "url(#clip)");
+
+    var data1 = null;
+
+    d3.csv("./static/MAR16.csv", function(error, data) {
+        if (error) throw error;
+        data.forEach(function(d) {
+            d.Flow = +d.Flow;
+            d.AverageJT = +d.AverageJT;
+        });
+        if (filter['LinkRef']) {
+            data = data.filter(function(row) {
+                return row['LinkRef'] == filter['LinkRef'];
+            })
+        };
+
+        if (filter['DataQuality']) {
+            data = data.filter(function(row) {
+                return row['DataQuality'] == filter['DataQuality'];
+            })
+        };
+
+        if (filter['toDate']) {
+            data = data.filter(function(row) {
+                return row['Date'] < filter['toDate'];
+            })
+        };
+
+        if (filter['fromDate']) {
+            data = data.filter(function(row) {
+                return row['Date'] > filter['fromDate'];
+            })
+        };
+
+        data1 = data;
+
+        var xExtent = d3.extent(data, function(d) {
+            return d.Flow;
+        });
+        var yExtent = d3.extent(data, function(d) {
+            return d.AverageJT;
+        });
+
+        x.domain(d3.extent(data, function(d) {
+            return d.Flow;
+        })).nice();
+        y.domain(d3.extent(data, function(d) {
+            return d.AverageJT;
+        })).nice();
+
+
+        scatter.selectAll(".dot")
+            .data(data)
+            .enter().append("circle")
+            .attr("class", "dot")
+            .attr("r", 4)
+            .attr("cx", function(d) {
+                return x(d.Flow);
+            })
+            .attr("cy", function(d) {
+                return y(d.AverageJT);
+            })
+            .attr("opacity", 0.5)
+            .on("mouseover", function(d) {
+                tooltip.transition()
+                    .duration(200)
+                    .style("opacity", .9);
+                tooltip.html("Flow:" + d.Flow + "<br/>" + "AverageJT:" + d.AverageJT)
+                    .style("left", (d3.event.pageX) + "px")
+                    .style("top", (d3.event.pageY - 30) + "px");
+            })
+            .on("mouseout", function(d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style("opacity", 0);
+            })
+            .style("fill", function(d){
+                if(d.LinkRef == "AL1000"){
+                    return "#4292c6";
+                }
+                else if(d.LinkRef == "AL100"){
+                    return "#E11D1D"
+                }
+                
+            });
+
+    });
+
+    // x axis
+    svg.append("g")
+        .attr("class", "x axis")
+        .attr('id', "axis--x")
+        .attr("transform", "translate(0," + height + ")")
+        .call(xAxis);
+
+    svg.append("text")
+        .style("text-anchor", "end")
+        .attr("x", width)
+        .attr("y", height - 8)
+        .text("Flow");
+
+    // y axis
+    svg.append("g")
+        .attr("class", "y axis")
+        .attr('id', "axis--y")
+        .call(yAxis);
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", 6)
+        .attr("dy", "1em")
+        .style("text-anchor", "end")
+        .text("AverageJT");
+
+    scatter.append("g")
+        .attr("class", "brush")
+        .call(brush);
+
+
+    function brushended() {
+
+        var s = d3.event.selection;
+        if (!s) {
+            if (!idleTimeout) return idleTimeout = setTimeout(idled, idleDelay);
+            x.domain(d3.extent(data1, function(d) {
+                return d.Flow;
+            })).nice();
+            y.domain(d3.extent(data1, function(d) {
+                return d.AverageJT;
+            })).nice();
+        } else {
+
+            x.domain([s[0][0], s[1][0]].map(x.invert, x));
+            y.domain([s[1][1], s[0][1]].map(y.invert, y));
+            scatter.select(".brush").call(brush.move, null);
+        }
+        zoom();
+    }
+
+    function idled() {
+        idleTimeout = null;
+    }
+
+    function zoom() {
+        var t = scatter.transition().duration(750);
+        svg.select("#axis--x").transition(t).call(xAxis);
+        svg.select("#axis--y").transition(t).call(yAxis);
+        scatter.selectAll("circle").transition(t)
+            .attr("cx", function(d) {
+                return x(d.Flow);
+            })
+            .attr("cy", function(d) {
+                return y(d.AverageJT);
+            });
+    }
+</script>
 
 
 {%endblock%}
