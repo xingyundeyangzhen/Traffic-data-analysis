@@ -6,12 +6,13 @@ import os
 import threading
 import flask
 from flask import request, redirect, flash, url_for, jsonify
-from flask_sqlalchemy import SQLAlchemy 
-import csv,sqlite3
+from flask_sqlalchemy import SQLAlchemy
+import csv
+import sqlite3
 
 app = flask.Flask(__name__)
 UPLOAD_FOLDER = './datafile'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif','csv'])
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'csv'])
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./data.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -34,95 +35,112 @@ def upload_file():
     file.save(path)
     return 'succcess'
 
+
 @app.route('/register', methods=['post', 'get'])
 @app.route('/login', methods=['post', 'get'])
 def handle_login():
-    username = request.form.get('username',None)
-    pswd = request.form.get('password',None)
-    if request.form.get('register-submit',None) and username and pswd :
-        email = request.form.get('email',None)
+    username = request.form.get('username', None)
+    pswd = request.form.get('password', None)
+    if request.form.get('register-submit', None) and username and pswd:
+        email = request.form.get('email', None)
         if request.form.get('confirm-password') == pswd:
-            u = user(username,pswd,email)
+            u = user(username, pswd, email)
             db.session.add(u)
-            db.session.commit() 
+            db.session.commit()
         return redirect(url_for('login'))
     elif request.form.get('login-submit') and username and pswd:
         print(username, pswd)
         if check_user(username, pswd):
-            return flask.render_template("index.html")
+            dic = {
+                'LinkRef': 'AL1000',
+                'DataQuality': None,
+                'fromDate': None,
+                'toDate': None
+            }
+            return flask.render_template("charts.html", filter=json.dumps(dic))
         else:
             redirect(url_for('login'))
     else:
         return redirect(url_for('login'))
-    
-
-@app.route("/index.html")
-def index():
-    """
-    When you request the dashboard path, you'll get the index.html template.
-
-    """
-    return flask.render_template("index.html")
 
 
-@app.route("/filter_chart1",methods=['post', 'get'])
+# @app.route("/index.html", methods=['post', 'get'])
+# def index():
+#     """
+#     When you request the dashboard path, you'll get the index.html template.
+
+#     """
+#     linkref = request.form.get('LinkRef', None)
+#     DataQuality = request.form.get('DataQuality', None)
+#     fromdate = request.form.get('fromDate', None)
+#     todate = request.form.get('toDate', None)
+#     dic = {
+#         'LinkRef': linkref,
+#         'DataQuality': DataQuality,
+#         'fromDate': fromdate,
+#         'toDate': todate
+#     }
+#     return flask.render_template("charts.html", filter=json.dumps(dic))
+
+
+@app.route("/filter_chart1", methods=['post', 'get'])
 def filter_chart1():
-    linkref = request.form.get('LinkRef',None)
-    DataQuality = request.form.get('DataQuality',None)
-    fromdate = request.form.get('fromDate',None)
-    todate = request.form.get('toDate',None)
-    dic={
-        'LinkRef':linkref,
-        'DataQuality':DataQuality,
-        'fromDate':fromdate,
-        'toDate':todate
-    }
-    return flask.render_template("charts.html", filter = json.dumps(dic))
-
-
-@app.route("/filter_chart2",methods=['post', 'get'])
-def filter_chart2():
-    linkref = request.form.get('LinkRef', None)
+    linkref = request.form.get('LinkRef', "AL1000")
     DataQuality = request.form.get('DataQuality', None)
     fromdate = request.form.get('fromDate', None)
     todate = request.form.get('toDate', None)
-    dic={
-        'LinkRef':linkref,
-        'DataQuality':DataQuality,
-        'fromDate':fromdate,
-        'toDate':todate
+    dic = {
+        'LinkRef': linkref,
+        'DataQuality': DataQuality,
+        'fromDate': fromdate,
+        'toDate': todate
     }
-    return flask.render_template("charts1.html", filter = json.dumps(dic))
+    return flask.render_template("charts.html", filter=json.dumps(dic))
 
 
-@app.route("/filter_chart3",methods=['post', 'get'])
+@app.route("/filter_chart2", methods=['post', 'get'])
+def filter_chart2():
+    linkref = request.form.get('LinkRef', 'AL1000')
+    DataQuality = request.form.get('DataQuality', None)
+    fromdate = request.form.get('fromDate', None)
+    todate = request.form.get('toDate', None)
+    dic = {
+        'LinkRef': linkref,
+        'DataQuality': DataQuality,
+        'fromDate': fromdate,
+        'toDate': todate
+    }
+    return flask.render_template("charts1.html", filter=json.dumps(dic))
+
+
+@app.route("/filter_chart3", methods=['post', 'get'])
 def filter_chart3():
-    linkref = request.form.get('LinkRef',None)
-    DataQuality = request.form.get('DataQuality',None)
-    fromdate = request.form.get('fromDate',None)
-    todate = request.form.get('toDate',None)
-    dic={
-        'LinkRef':linkref,
-        'DataQuality':DataQuality,
-        'fromDate':fromdate,
-        'toDate':todate
+    linkref = request.form.get('LinkRef', 'AL1000')
+    DataQuality = request.form.get('DataQuality', None)
+    fromdate = request.form.get('fromDate', None)
+    todate = request.form.get('toDate', None)
+    dic = {
+        'LinkRef': linkref,
+        'DataQuality': DataQuality,
+        'fromDate': fromdate,
+        'toDate': todate
     }
-    return flask.render_template("charts2.html", filter = json.dumps(dic))
+    return flask.render_template("charts2.html", filter=json.dumps(dic))
 
 
-@app.route("/filter_table",methods=['post', 'get'])
+@app.route("/filter_table", methods=['post', 'get'])
 def filter_table():
-    linkref = request.form.get('LinkRef',None)
-    DataQuality = request.form.get('DataQuality',None)
-    fromdate = request.form.get('fromDate',None)
-    todate = request.form.get('toDate',None)
-    dic={
-        'LinkRef':linkref,
-        'DataQuality':DataQuality,
-        'fromDate':fromdate,
-        'toDate':todate
+    linkref = request.form.get('LinkRef', "AL1000")
+    DataQuality = request.form.get('DataQuality', None)
+    fromdate = request.form.get('fromDate', None)
+    todate = request.form.get('toDate', None)
+    dic = {
+        'LinkRef': linkref,
+        'DataQuality': DataQuality,
+        'fromDate': fromdate,
+        'toDate': todate
     }
-    return flask.render_template("tables.html", filter = json.dumps(dic))
+    return flask.render_template("tables.html", filter=json.dumps(dic))
 
 
 @app.route("/charts.html")
@@ -130,13 +148,13 @@ def chart():
     """ 
     When you request for the chart page 
     """
-    dic ={
-        'LinkRef':'AL1000',
-        'DataQuality':None,
-        'fromDate':None,
-        'toDate':None
+    dic = {
+        'LinkRef': 'AL1000',
+        'DataQuality': None,
+        'fromDate': None,
+        'toDate': None
     }
-    return flask.render_template("charts.html",filter = json.dumps(dic))
+    return flask.render_template("charts.html", filter=json.dumps(dic))
 
 
 @app.route("/charts1.html")
@@ -144,13 +162,13 @@ def chart1():
     """
     When you request for the chart page 
     """
-    dic ={
-        'LinkRef':'AL1000',
-        'DataQuality':None,
-        'fromDate':None,
-        'toDate':None
+    dic = {
+        'LinkRef': 'AL1000',
+        'DataQuality': None,
+        'fromDate': None,
+        'toDate': None
     }
-    return flask.render_template("charts1.html",filter = json.dumps(dic))
+    return flask.render_template("charts1.html", filter=json.dumps(dic))
 
 
 @app.route("/charts2.html")
@@ -158,13 +176,13 @@ def chart2():
     """
     When you request for the chart page 
     """
-    dic ={
-        'LinkRef':'AL1000',
-        'DataQuality':None,
-        'fromDate':None,
-        'toDate':None
+    dic = {
+        'LinkRef': 'AL1000',
+        'DataQuality': None,
+        'fromDate': None,
+        'toDate': None
     }
-    return flask.render_template("charts2.html",filter = json.dumps(dic))
+    return flask.render_template("charts2.html", filter=json.dumps(dic))
 
 
 @app.route("/charts3.html")
@@ -186,13 +204,13 @@ def table():
     """
     When you request for the tables page
     """
-    dic ={
-        'LinkRef':None,
-        'DataQuality':None,
-        'fromDate':None,
-        'toDate':None
+    dic = {
+        'LinkRef': "AL1000",
+        'DataQuality': None,
+        'fromDate': None,
+        'toDate': None
     }
-    return flask.render_template("tables.html",filter = json.dumps(dic))
+    return flask.render_template("tables.html", filter=json.dumps(dic))
 
 
 @app.route("/forms.html")
@@ -258,6 +276,7 @@ def check_user(username, pswd):
     else:
         return False
 
+
 '''
 functions
 '''
@@ -265,7 +284,7 @@ functions
 
 import csv
 import json
- 
+
 # # 读csv文件
 # def read_csv(file):
 #     csv_rows = []
@@ -275,7 +294,7 @@ import json
 #         for row in reader:
 #             csv_rows.extend([{title[i]:row[title[i]] for i in range(len(title))}])
 #     return json.dumps(csv_rows)
- 
+
 # # 写json文件
 # def write_json(data, json_file, format=None):
 #     with open(json_file, "w") as f:
@@ -283,13 +302,8 @@ import json
 #             f.write(json.dumps(data, sort_keys=False, indent=4, separators=(',', ': '),ensure_ascii=False))
 #         else:
 #             f.write(json.dumps(data))
-   
-        
-
-
-        
 
 
 if __name__ == "__main__":
     port = 8000
-    app.run(port=port)
+    app.run(debug=True, port=port)
