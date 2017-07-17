@@ -27,14 +27,6 @@ def login():
     return flask.render_template("login.html")
 
 
-@app.route('/uploader', methods=['POST'])
-def upload_file():
-    file = request.files['file']
-    filename = file.filename
-    path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    file.save(path)
-    return 'succcess'
-
 
 @app.route('/register', methods=['post', 'get'])
 @app.route('/login', methods=['post', 'get'])
@@ -199,6 +191,14 @@ def chart3():
     return flask.render_template("charts3.html")
 
 
+@app.route("/charts4.html")
+def chart4():
+    """
+    When you request for the chart page 
+    """
+    return flask.render_template("charts4.html")
+
+
 @app.route("/tables.html")
 def table():
     """
@@ -242,29 +242,6 @@ class user(db.Model):
         return '<User %r>' % self.username
 
 
-class Data(db.Model):
-    __tablename__ = 'data'
-    LinkRef = db.Column(primary_key=True)
-    LinkDescription = db.Column(db.Text)
-    Date = db.Column(db.String(64))
-    TimePeriod = db.Column(db.Integer)
-    AverageJT = db.Column(db.Float)
-    AverageSpeed = db.Column(db.Float)
-    DataQuality = db.Column(db.Integer)
-    LinkLength = db.Column(db.Float)
-    Flow = db.Column(db.Float)
-
-    def __init__(self, *param):
-        self.LinkRef = param[0]
-        self.LinkDescription = param[1]
-        self.Date = param[2]
-        self.TimePeriod = param[3]
-        self.AverageJT = param[4]
-        self.AverageSpeed = param[5]
-        self.DataQuality = param[6]
-        self.LinkLength = param[7]
-        self.Flow = param[8]
-
 
 def check_user(username, pswd):
     u = user.query.filter_by(username=username).first()
@@ -277,31 +254,8 @@ def check_user(username, pswd):
         return False
 
 
-'''
-functions
-'''
 
 
-import csv
-import json
-
-# # 读csv文件
-# def read_csv(file):
-#     csv_rows = []
-#     with open(file) as csvfile:
-#         reader = csv.DictReader(csvfile)
-#         title = reader.fieldnames
-#         for row in reader:
-#             csv_rows.extend([{title[i]:row[title[i]] for i in range(len(title))}])
-#     return json.dumps(csv_rows)
-
-# # 写json文件
-# def write_json(data, json_file, format=None):
-#     with open(json_file, "w") as f:
-#         if format == "good":
-#             f.write(json.dumps(data, sort_keys=False, indent=4, separators=(',', ': '),ensure_ascii=False))
-#         else:
-#             f.write(json.dumps(data))
 
 
 if __name__ == "__main__":

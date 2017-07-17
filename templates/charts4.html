@@ -1,0 +1,63 @@
+{% extends "basic.html" %} {%block body%}
+
+
+<link href="http://api.map.baidu.com/library/TrafficControl/1.4/src/TrafficControl_min.css" rel="stylesheet" type="text/css" />
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=1.4"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/library/TrafficControl/1.4/src/TrafficControl_min.js"></script>
+
+<div id="page-wrapper">
+
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="row">
+            <div class="col-lg-12">
+                <h1 class="page-header">
+                    Charts
+                </h1>
+                <ol class="breadcrumb">
+                    <li>
+                        <i class="fa fa-dashboard"></i> <a href="index.html">Dashboard</a>
+                    </li>
+                    <li class="active">
+                        <i class="fa fa-bar-chart-o"></i> Charts
+                    </li>
+                </ol>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel panel-primary">
+                    <div class="panel-heading">
+                        <h3 class="panel-title"><i class="fa fa-bar-chart-o"></i> Traffic Control</h3>
+                    </div>
+                    <div class="panel-body">
+                        <div class="col-xs-12" id="container" style="height:500px">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.row -->
+
+    </div>
+    <!-- /.container-fluid -->
+
+</div>
+
+<script type="text/javascript">
+       var map = new BMap.Map("container");
+      
+       map.centerAndZoom(new BMap.Point(116.404, 39.915), 12); 
+       var ctrl = new BMapLib.TrafficControl({
+           showPanel: false //是否显示路况提示面板
+       });      
+       map.addControl(ctrl);
+       ctrl.setAnchor(BMAP_ANCHOR_BOTTOM_RIGHT);  
+       
+    </script>
+
+
+{%endblock%}
