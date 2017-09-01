@@ -3,14 +3,21 @@ This file is part of the flask+d3 Hello World project.
 """
 import json
 import os
-import threading
+import requests
 import flask
-from flask import request, redirect, flash, url_for, jsonify
+from flask import request, redirect, flash, url_for, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 import csv
 import sqlite3
 
+# gevent
+from gevent import monkey
+from gevent.pywsgi import WSGIServer
+monkey.patch_all()
+# gevent end
+
 app = flask.Flask(__name__)
+DB_Path = './sqlite3.db'
 UPLOAD_FOLDER = './datafile'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'csv'])
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///./data.db'
@@ -24,6 +31,12 @@ def login():
     """
     When you request the root path, you'll get the index.html template.
     """
+    # data = readfromdb('select * from data where linkref=\'AL100\'')
+    # return Response(
+    #     response= data,
+    #     mimetype="application/json",
+    #     status=200
+    # )
     return flask.render_template("login.html")
 
 
@@ -74,6 +87,19 @@ def handle_login():
 #     }
 #     return flask.render_template("charts.html", filter=json.dumps(dic))
 
+@app.route("/getdata",methods=['post', 'get'])
+def getdata():
+    lnrf = request.args.get('lnrf')
+    dq = request.args.get('dq')
+    frm = request.args.get('frm')
+    to = request.args.get('to')
+    query='select * from data where linkref = %s and dataQuality = %s and date =< %s and date>= %s' %(lnrf,dq,to,frm)
+    
+    return Response(
+        response= data,
+        mimetype="application/json",
+        status=200
+    )
 
 @app.route("/filter_chart1", methods=['post', 'get'])
 def filter_chart1():
@@ -81,13 +107,13 @@ def filter_chart1():
     DataQuality = request.form.get('DataQuality', None)
     fromdate = request.form.get('fromDate', None)
     todate = request.form.get('toDate', None)
-    dic = {
-        'LinkRef': linkref,
-        'DataQuality': DataQuality,
-        'fromDate': fromdate,
-        'toDate': todate
-    }
-    return flask.render_template("charts.html", filter=json.dumps(dic))
+    query='select * from data where linkref = %s' % linkref
+    if DataQuality:
+        query += ' and dataQuality = %s' % DataQuality
+    if fromdate:
+        query += ' and date>= %s' % fromdate
+    data = readfromdb(query)
+    return flask.render_template("charts.html",data = data )
 
 
 @app.route("/filter_chart2", methods=['post', 'get'])
@@ -253,11 +279,26 @@ def check_user(username, pswd):
     else:
         return False
 
+def readfromdb(query):
+    conn = sqlite3.connect(DB_Path)
+    cs = conn.cursor()
+    cs.execute(query)  
+    res = cs.fetchall()
+    print ( "共", len(res),"条记录" ) 
+    jsondata = convert_to_json_string(res)
+    cs.close()  
+    conn.close()  
+    return jsondata
 
-
+def convert_to_json_string(data):
+    return json.dumps([{'LinkRef': i[1], 'LinkDescription': i[2], 'Date':i[3], \
+                     'TimePeriod': i[4], 'AverageJT': i[5], 'AverageSpeed':i[6], \
+                     'DataQuality': i[7], 'LinkLength': i[8], 'Flow':i[9]} for i in data], indent=4)
 
 
 
 if __name__ == "__main__":
-    port = 8000
-    app.run(debug=True, port=port)
+    # port = 8000
+    # app.run(debug=True, port=port)
+    http_server = WSGIServer(('127.0.0.1', 8080), app)
+    http_server.serve_forever()
